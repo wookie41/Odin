@@ -119,6 +119,26 @@ assign_int :: proc(val: any, i: $T) -> bool {
 	}
 	return true
 }
+
+assign_bitset :: proc(val: any, i: $T) -> bool {
+	type_info := type_info_of(val.id)
+	if reflect.is_bit_set(type_info) == false {
+		return false
+	}
+
+	if type_info.size == size_of(u8) {
+		(^u8)(val.data)^ = u8(i)
+	} else if type_info.size == size_of(u16) {
+		(^u16)(val.data)^ = u16(i)
+	} else if type_info.size == size_of(u32) {
+		(^u32)(val.data)^ = u32(i)
+	} else if type_info.size == size_of(u64) {
+		(^u64)(val.data)^ = u64(i)
+	}
+
+	return true
+}
+
 @(private)
 assign_float :: proc(val: any, f: $T) -> bool {
 	v := reflect.any_core(val)
@@ -241,6 +261,9 @@ unmarshal_value :: proc(p: ^Parser, v: any) -> (err: Unmarshal_Error) {
 			return
 		}
 		if assign_float(v, i) {
+			return
+		}
+		if assign_bitset(v, i) {
 			return
 		}
 		return UNSUPPORTED_TYPE
